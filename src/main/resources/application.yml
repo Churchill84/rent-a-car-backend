@@ -1,18 +1,30 @@
 spring:
+  application:
+    name: rent-a-car
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/jwt_security
-    username: username
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://localhost:13306/rent-a-car?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
+    show-sql: true
+    generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+      ddl-auto: update
+
+logging:
+  level:
+    web: DEBUG
+    org:
+      springframework:
+        web: DEBUG
+        boot:
+          autoconfigure:
+            jdbc: DEBUG
+
+
 
 application:
   security:
