@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -30,5 +31,5 @@ public class CarRequest {
     private LocalDateTime lastModified;
     private Long createdBy;
     private Long lastModifiedBy;
-    private String imageUrl;
+    private MultipartFile imageUrl;
 }

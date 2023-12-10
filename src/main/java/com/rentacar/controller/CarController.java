@@ -14,11 +14,11 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -26,7 +26,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/api/v1/cars")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200/car-list")
 public class CarController {
 
     Logger logger = LoggerFactory.getLogger(CarController.class);
@@ -46,17 +45,22 @@ public class CarController {
 
     @GetMapping("/{id}")
     public EntityModel<Car> findCarById(@PathVariable Long id) {
-
-        Car car = carService.getCarById(id);
-
-        return carModelAssembler.toModel(car);
+        return carModelAssembler.toModel(carService.getCarById(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<EntityModel<Car>> updateCar(@PathVariable Long id, @RequestBody CarRequest carRequest) throws IOException {
-        logger.debug("Received car update request: {}", carRequest); // Add this log
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<EntityModel<Car>> updateCar(
+            @PathVariable Long id,
+            @ModelAttribute CarRequest carRequest,
+            @RequestParam(required = false) MultipartFile carImage) throws IOException {
+
+        logger.debug("Received car update request: {}, {}", carRequest, carImage);
 
         User user = UserUtils.getUser();
+
+        if (carImage != null && !carImage.isEmpty()) {
+            carRequest.setImageUrl(carImage);
+        }
 
         Optional<Car> updated = Optional.ofNullable(carService.updateCar(id, carRequest, user.getId()));
 
@@ -77,15 +81,21 @@ public class CarController {
                 });
     }
 
-    @PostMapping
-    ResponseEntity<EntityModel<Car>> newCar(@RequestBody CarRequest request) throws IOException {
+    @PostMapping(consumes = {"multipart/form-data"})
+    ResponseEntity<EntityModel<Car>> newCar(
+            @ModelAttribute CarRequest carRequest,
+            @RequestParam(required = false) MultipartFile carImage) throws IOException {
 
         User user = UserUtils.getUser();
 
-        EntityModel<Car> entityModel = carModelAssembler.toModel(carService.createCar(request, user.getId()));
+        if (carImage != null && !carImage.isEmpty()) {
+            carRequest.setImageUrl(carImage);
+        }
 
-        return ResponseEntity //
-                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri()) //
+        EntityModel<Car> entityModel = carModelAssembler.toModel(carService.createCar(carRequest, user.getId()));
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
     }
 
